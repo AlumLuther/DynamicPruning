@@ -22,20 +22,19 @@ class GatedConv(nn.Module):
             return self.gated_forward(x)
 
     def gated_forward(self, x):
-        subsample = F.avg_pool2d(x, x.shape[2])
-        subsample = subsample.view(x.shape[0], x.shape[1])
-        gates = self.gate(subsample)
-        gates = torch.abs(gates)
-        # gates = F.relu(gates)
-
         if self.ratio < 1:
+            subsample = F.avg_pool2d(x, x.shape[2])
+            subsample = subsample.view(x.shape[0], x.shape[1])
+            gates = self.gate(subsample)
+            gates = F.relu(gates)
             inactive_channels = self.conv.out_channels - round(self.conv.out_channels * self.ratio)
             inactive_idx = (-gates).topk(inactive_channels, 1)[1]
             gates.scatter_(1, inactive_idx, 0)
 
         x = self.conv(x)
         x = self.bn(x)
-        x = x * gates.unsqueeze(2).unsqueeze(3)
+        if self.ratio < 1:
+            x = x * gates.unsqueeze(2).unsqueeze(3)
         x = F.relu(x)
 
         return x
