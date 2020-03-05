@@ -73,3 +73,8 @@ def load_network(args):
 
 def save_network(network, args):
     torch.save({'state_dict': network.state_dict()}, args.save_path)
+    # for GatedConv
+    # network.bn.weight = network.init.constant_(network.bn.bias, 1)
+    # for i, j in network.bn.named_parameters():
+    #     if i == 'weight':
+    #         j.requires_grad = False

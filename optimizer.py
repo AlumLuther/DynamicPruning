@@ -2,7 +2,7 @@ import torch
 
 
 def get_optimizer(network, args):
-    optimizer = torch.optim.SGD(network.parameters(),
+    optimizer = torch.optim.SGD(filter(lambda p: p.requires_grad, network.parameters()),
                                 lr=args.lr,
                                 momentum=args.momentum,
                                 weight_decay=args.weight_decay)
