@@ -8,6 +8,11 @@ class GatedConv(nn.Module):
         super(GatedConv, self).__init__()
         self.conv = nn.Conv2d(in_channels, out_channels, kernel_size, stride=stride, padding=padding, bias=False)
         self.bn = nn.BatchNorm2d(out_channels)
+        # for init, under condition bn.weight=1
+        # self.bn.weight = nn.init.constant_(self.bn.weight, 1)
+        # for i, j in self.bn.named_parameters():
+        #     if i == 'weight':
+        #         j.requires_grad = False
         self.gate = nn.Linear(in_channels, out_channels)
         self.gate.weight = nn.init.kaiming_normal_(self.gate.weight)
         self.gate.bias = nn.init.constant_(self.gate.bias, 1)
@@ -27,9 +32,10 @@ class GatedConv(nn.Module):
         subsample = subsample.view(x.shape[0], x.shape[1])
         gates = self.gate(subsample)
         gates = F.relu(gates)
-        inactive_channels = self.conv.out_channels - round(self.conv.out_channels * self.ratio)
-        inactive_idx = (-gates).topk(inactive_channels, 1)[1]
-        gates.scatter_(1, inactive_idx, 0)
+        if self.ratio < 1:
+            inactive_channels = self.conv.out_channels - round(self.conv.out_channels * self.ratio)
+            inactive_idx = (-gates).topk(inactive_channels, 1)[1]
+            gates.scatter_(1, inactive_idx, 0)
 
         x = self.conv(x)
         x = self.bn(x)

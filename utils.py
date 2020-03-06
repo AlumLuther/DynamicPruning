@@ -2,7 +2,7 @@ import torch
 import torchvision
 import torchvision.transforms as transforms
 
-from network import MyVgg
+from network import MyVgg, GatedConv
 
 
 class AverageMeter(object):
@@ -68,13 +68,14 @@ def load_network(args):
         check_point = torch.load(args.load_path)
         network = MyVgg()
         network.load_state_dict(check_point['state_dict'])
+        # for layer in network.features:
+        #     if isinstance(layer, GatedConv):
+        #         layer.bn.weight = torch.nn.init.constant_(layer.bn.weight, 1)
+        #         for i, j in layer.bn.named_parameters():
+        #             if i == 'weight':
+        #                 j.requires_grad = False
     return network
 
 
 def save_network(network, args):
     torch.save({'state_dict': network.state_dict()}, args.save_path)
-    # for GatedConv
-    # network.bn.weight = network.init.constant_(network.bn.bias, 1)
-    # for i, j in network.bn.named_parameters():
-    #     if i == 'weight':
-    #         j.requires_grad = False
