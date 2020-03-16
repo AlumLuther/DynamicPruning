@@ -4,7 +4,7 @@ import torch
 
 
 class GatedConv(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size=3, stride=1, padding=1):
+    def __init__(self, in_channels, out_channels, kernel_size=3, stride=1, padding=1, gated=False):
         super(GatedConv, self).__init__()
         self.conv = nn.Conv2d(in_channels, out_channels, kernel_size, stride=stride, padding=padding, bias=False)
         self.bn = nn.BatchNorm2d(out_channels)
@@ -13,19 +13,20 @@ class GatedConv(nn.Module):
         # for i, j in self.bn.named_parameters():
         #     if i == 'weight':
         #         j.requires_grad = False
+        self.gated = gated
         self.gate = nn.Linear(in_channels, out_channels)
         self.gate.weight = nn.init.kaiming_normal_(self.gate.weight)
         self.gate.bias = nn.init.constant_(self.gate.bias, 1)
         self.ratio = 1
 
     def forward(self, x):
-        if 0:  # for test
+        if self.gated:
+            return self.gated_forward(x)
+        else:
             x = self.conv(x)
             x = self.bn(x)
             x = F.relu(x)
             return x
-        else:
-            return self.gated_forward(x)
 
     def gated_forward(self, x):
         subsample = F.avg_pool2d(x, x.shape[2])
@@ -41,7 +42,6 @@ class GatedConv(nn.Module):
         x = self.bn(x)
         x = x * gates.unsqueeze(2).unsqueeze(3)
         x = F.relu(x)
-
         return x
 
 
@@ -50,22 +50,22 @@ class MyVgg(nn.Module):
         super(MyVgg, self).__init__()
         self.features = nn.Sequential(
             GatedConv(3, 64),
-            GatedConv(64, 64),
+            GatedConv(64, 64, gated=True),
             nn.MaxPool2d(kernel_size=2, stride=2),
             GatedConv(64, 128),
-            GatedConv(128, 128),
+            GatedConv(128, 128, gated=True),
             nn.MaxPool2d(kernel_size=2, stride=2),
             GatedConv(128, 256),
-            GatedConv(256, 256),
-            GatedConv(256, 256),
+            GatedConv(256, 256, gated=True),
+            GatedConv(256, 256, gated=True),
             nn.MaxPool2d(kernel_size=2, stride=2),
             GatedConv(256, 512),
-            GatedConv(512, 512),
-            GatedConv(512, 512),
+            GatedConv(512, 512, gated=True),
+            GatedConv(512, 512, gated=True),
             nn.MaxPool2d(kernel_size=2, stride=2),
-            GatedConv(512, 512),
-            GatedConv(512, 512),
-            GatedConv(512, 512),
+            GatedConv(512, 512, gated=True),
+            GatedConv(512, 512, gated=True),
+            GatedConv(512, 512, gated=True),
             nn.MaxPool2d(kernel_size=2, stride=2)
         )
         self.classifier = torch.nn.Sequential(
