@@ -8,11 +8,6 @@ class GatedConv(nn.Module):
         super(GatedConv, self).__init__()
         self.conv = nn.Conv2d(in_channels, out_channels, kernel_size, stride=stride, padding=padding, bias=False)
         self.bn = nn.BatchNorm2d(out_channels)
-        # for init, under condition bn.weight=1
-        # self.bn.weight = nn.init.constant_(self.bn.weight, 1)
-        # for i, j in self.bn.named_parameters():
-        #     if i == 'weight':
-        #         j.requires_grad = False
         self.gated = gated
         self.gate = nn.Linear(in_channels, out_channels)
         self.gate.weight = nn.init.kaiming_normal_(self.gate.weight)
@@ -21,26 +16,19 @@ class GatedConv(nn.Module):
 
     def forward(self, x):
         if self.gated:
-            return self.gated_forward(x)
-        else:
-            x = self.conv(x)
-            x = self.bn(x)
-            x = F.relu(x)
-            return x
-
-    def gated_forward(self, x):
-        subsample = F.avg_pool2d(x, x.shape[2])
-        subsample = subsample.view(x.shape[0], x.shape[1])
-        gates = self.gate(subsample)
-        gates = F.relu(gates)
-        if self.ratio < 1:
-            inactive_channels = self.conv.out_channels - round(self.conv.out_channels * self.ratio)
-            inactive_idx = (-gates).topk(inactive_channels, 1)[1]
-            gates.scatter_(1, inactive_idx, 0)
+            subsample = F.avg_pool2d(x, x.shape[2])
+            subsample = subsample.view(x.shape[0], x.shape[1])
+            gates = self.gate(subsample)
+            gates = F.relu(gates)
+            if self.ratio < 1:
+                inactive_channels = self.conv.out_channels - round(self.conv.out_channels * self.ratio)
+                inactive_idx = (-gates).topk(inactive_channels, 1)[1]
+                gates.scatter_(1, inactive_idx, 0)
 
         x = self.conv(x)
         x = self.bn(x)
-        x = x * gates.unsqueeze(2).unsqueeze(3)
+        if self.gated:
+            x = x * gates.unsqueeze(2).unsqueeze(3)
         x = F.relu(x)
         return x
 

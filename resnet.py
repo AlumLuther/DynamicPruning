@@ -29,8 +29,8 @@ class GatedBlock(nn.Module):
         self.bn_b = nn.BatchNorm2d(planes)
         self.down_sample = down_sample
 
-        self.gated_flag_a = gated
-        self.gated_flag_b = False
+        self.gated_flag_a = False
+        self.gated_flag_b = gated
         self.gate_a = nn.Linear(inplanes, planes)
         self.gate_a.weight = nn.init.kaiming_normal_(self.gate_a.weight)
         self.gate_a.bias = nn.init.constant_(self.gate_a.bias, 1)
@@ -40,21 +40,6 @@ class GatedBlock(nn.Module):
         self.ratio = 1
 
     def forward(self, x):
-        if self.gated_flag_a or self.gated_flag_b:
-            return self.gated_forward(x)
-        else:
-            residual = x
-            x = self.conv_a(x)
-            x = self.bn_a(x)
-            x = F.relu(x, inplace=True)
-            x = self.conv_b(x)
-            x = self.bn_b(x)
-            if self.down_sample is not None:
-                residual = self.down_sample(residual)
-            x = F.relu(x + residual, inplace=True)
-            return x
-
-    def gated_forward(self, x):
         residual = x
 
         if self.gated_flag_a:
@@ -114,8 +99,8 @@ class CifarResNet(nn.Module):
         self.bn_1 = nn.BatchNorm2d(cfg[0])
 
         self.inplanes = cfg[0]
-        self.stage_1 = self._make_layer(block, cfg[0], layer_blocks, 1, gated=True)
-        self.stage_2 = self._make_layer(block, cfg[1], layer_blocks, 2, gated=True)
+        self.stage_1 = self._make_layer(block, cfg[0], layer_blocks, 1, gated=False)
+        self.stage_2 = self._make_layer(block, cfg[1], layer_blocks, 2, gated=False)
         self.stage_3 = self._make_layer(block, cfg[2], layer_blocks, 2, gated=True)
         self.avgpool = nn.AvgPool2d(8)
         self.classifier = nn.Linear(cfg[2] * block.expansion, num_classes)

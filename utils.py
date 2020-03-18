@@ -3,7 +3,7 @@ import torchvision
 import torchvision.transforms as transforms
 
 from resnet import resnet20
-from vgg import MyVgg, GatedConv
+from vgg import MyVgg
 
 
 class AverageMeter(object):
@@ -82,4 +82,5 @@ def load_network(args):
 
 
 def save_network(network, args):
-    torch.save({'state_dict': network.state_dict()}, args.save_path)
+    if args.save_path:
+        torch.save({'state_dict': network.state_dict()}, args.save_path)

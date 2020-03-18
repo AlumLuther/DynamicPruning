@@ -1,13 +1,12 @@
-import torch
-
 from evaluate import test_network
 from parameter import get_parameter
 from train import train_network
 from utils import save_network, load_network
 
-torch.cuda.set_device(0)
 args = get_parameter()
-model = load_network(args)
-model = train_network(model, args)
-test_network(model, args)
-save_network(model, args)
+network = load_network(args)
+if args.train_flag:
+    network = train_network(network, args)
+    save_network(network, args)
+elif args.test_flag:
+    test_network(network, args)
