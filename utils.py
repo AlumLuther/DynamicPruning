@@ -2,7 +2,8 @@ import torch
 import torchvision
 import torchvision.transforms as transforms
 
-from resnet import resnet20
+from cifarnet import CifarNet
+from resnet import resnet20, resnet32
 from vgg import MyVgg
 
 
@@ -71,13 +72,18 @@ def load_network(args):
             network = MyVgg()
             network.load_state_dict(check_point['state_dict'])
         elif args.network == 'resnet':
-            network = resnet20()
+            network = resnet32()
+            network.load_state_dict(check_point['state_dict'])
+        elif args.network == 'cifarnet':
+            network = CifarNet()
             network.load_state_dict(check_point['state_dict'])
     else:
         if args.network == 'vgg':
             network = MyVgg()
         elif args.network == 'resnet':
             network = resnet20()
+        elif args.network == 'cifarnet':
+            network = CifarNet()
     return network
 
 

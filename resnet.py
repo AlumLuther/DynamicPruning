@@ -30,7 +30,7 @@ class GatedBlock(nn.Module):
         self.down_sample = down_sample
 
         self.gated_flag_a = False
-        self.gated_flag_b = gated
+        self.gated_flag_b = False
         self.gate_a = nn.Linear(inplanes, planes)
         self.gate_a.weight = nn.init.kaiming_normal_(self.gate_a.weight)
         self.gate_a.bias = nn.init.constant_(self.gate_a.bias, 1)
@@ -101,7 +101,7 @@ class CifarResNet(nn.Module):
         self.inplanes = cfg[0]
         self.stage_1 = self._make_layer(block, cfg[0], layer_blocks, 1, gated=False)
         self.stage_2 = self._make_layer(block, cfg[1], layer_blocks, 2, gated=False)
-        self.stage_3 = self._make_layer(block, cfg[2], layer_blocks, 2, gated=True)
+        self.stage_3 = self._make_layer(block, cfg[2], layer_blocks, 2, gated=False)
         self.avgpool = nn.AvgPool2d(8)
         self.classifier = nn.Linear(cfg[2] * block.expansion, num_classes)
 
