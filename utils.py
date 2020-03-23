@@ -69,21 +69,21 @@ def load_network(args):
     if args.load_path:
         check_point = torch.load(args.load_path)
         if args.network == 'vgg':
-            network = MyVgg()
+            network = MyVgg(gated=args.gated, ratio=args.ratio)
             network.load_state_dict(check_point['state_dict'])
         elif args.network == 'resnet':
-            network = resnet32()
+            network = resnet32(gated=args.gated, ratio=args.ratio)
             network.load_state_dict(check_point['state_dict'])
         elif args.network == 'cifarnet':
-            network = CifarNet()
+            network = CifarNet(gated=args.gated, ratio=args.ratio)
             network.load_state_dict(check_point['state_dict'])
     else:
         if args.network == 'vgg':
-            network = MyVgg()
+            network = MyVgg(gated=args.gated, ratio=args.ratio)
         elif args.network == 'resnet':
-            network = resnet20()
+            network = resnet32(gated=args.gated, ratio=args.ratio)
         elif args.network == 'cifarnet':
-            network = CifarNet()
+            network = CifarNet(gated=args.gated, ratio=args.ratio)
     return network
 
 

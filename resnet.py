@@ -20,7 +20,7 @@ class DownSample(nn.Module):
 class GatedBlock(nn.Module):
     expansion = 1
 
-    def __init__(self, inplanes, planes, stride=1, down_sample=None, gated=False):
+    def __init__(self, inplanes, planes, stride=1, down_sample=None, gated=True, ratio=1):
         super(GatedBlock, self).__init__()
 
         self.conv_a = nn.Conv2d(inplanes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
@@ -29,15 +29,15 @@ class GatedBlock(nn.Module):
         self.bn_b = nn.BatchNorm2d(planes)
         self.down_sample = down_sample
 
-        self.gated_flag_a = False
-        self.gated_flag_b = False
+        self.gated_flag_a = gated
+        self.gated_flag_b = gated
         self.gate_a = nn.Linear(inplanes, planes)
         self.gate_a.weight = nn.init.kaiming_normal_(self.gate_a.weight)
         self.gate_a.bias = nn.init.constant_(self.gate_a.bias, 1)
         self.gate_b = nn.Linear(planes, planes)
         self.gate_b.weight = nn.init.kaiming_normal_(self.gate_b.weight)
         self.gate_b.bias = nn.init.constant_(self.gate_b.bias, 1)
-        self.ratio = 1
+        self.ratio = ratio
 
     def forward(self, x):
         residual = x
@@ -79,7 +79,7 @@ class GatedBlock(nn.Module):
 
 
 class CifarResNet(nn.Module):
-    def __init__(self, block, depth, num_classes, cfg=[16, 32, 64]):
+    def __init__(self, block, depth, num_classes, cfg=[16, 32, 64], gated=True, ratio=1):
         """ Constructor
         Args:
           depth: number of layers.
@@ -99,9 +99,9 @@ class CifarResNet(nn.Module):
         self.bn_1 = nn.BatchNorm2d(cfg[0])
 
         self.inplanes = cfg[0]
-        self.stage_1 = self._make_layer(block, cfg[0], layer_blocks, 1, gated=False)
-        self.stage_2 = self._make_layer(block, cfg[1], layer_blocks, 2, gated=False)
-        self.stage_3 = self._make_layer(block, cfg[2], layer_blocks, 2, gated=False)
+        self.stage_1 = self._make_layer(block, cfg[0], layer_blocks, 1, gated=gated, ratio=ratio)
+        self.stage_2 = self._make_layer(block, cfg[1], layer_blocks, 2, gated=gated, ratio=ratio)
+        self.stage_3 = self._make_layer(block, cfg[2], layer_blocks, 2, gated=gated, ratio=ratio)
         self.avgpool = nn.AvgPool2d(8)
         self.classifier = nn.Linear(cfg[2] * block.expansion, num_classes)
 
@@ -117,15 +117,15 @@ class CifarResNet(nn.Module):
                 init.kaiming_normal_(m.weight)
                 m.bias.data.zero_()
 
-    def _make_layer(self, block, planes, blocks, stride=1, gated=False):
+    def _make_layer(self, block, planes, blocks, stride=1, gated=True, ratio=1):
         down_sample = None
         if stride != 1 or self.inplanes != planes * block.expansion:
             down_sample = DownSample(stride)
 
-        layers = [block(self.inplanes, planes, stride, down_sample, gated=gated)]
+        layers = [block(self.inplanes, planes, stride, down_sample, gated=gated, ratio=ratio)]
         self.inplanes = planes * block.expansion
         for i in range(1, blocks):
-            layers.append(block(self.inplanes, planes, gated=gated))
+            layers.append(block(self.inplanes, planes, gated=gated, ratio=ratio))
 
         return nn.Sequential(*layers)
 
@@ -140,46 +140,11 @@ class CifarResNet(nn.Module):
         return self.classifier(x)
 
 
-def resnet20(num_classes=10):
-    """Constructs a ResNet-20 model for CIFAR-10 (by default)
-    Args:
-      num_classes (uint): number of classes
-    """
-    model = CifarResNet(GatedBlock, 20, num_classes)
+def resnet20(num_classes=10, cfg=[16, 32, 64], gated=True, ratio=1):
+    model = CifarResNet(GatedBlock, 20, num_classes, cfg, gated=gated, ratio=ratio)
     return model
 
 
-def resnet32(num_classes=10, cfg=[16, 32, 64]):
-    """Constructs a ResNet-32 model for CIFAR-10 (by default)
-    Args:
-      num_classes (uint): number of classes
-    """
-    model = CifarResNet(GatedBlock, 32, num_classes, cfg)
-    return model
-
-
-def resnet44(num_classes=10):
-    """Constructs a ResNet-44 model for CIFAR-10 (by default)
-    Args:
-      num_classes (uint): number of classes
-    """
-    model = CifarResNet(GatedBlock, 44, num_classes)
-    return model
-
-
-def resnet56(num_classes=10):
-    """Constructs a ResNet-56 model for CIFAR-10 (by default)
-    Args:
-      num_classes (uint): number of classes
-    """
-    model = CifarResNet(GatedBlock, 56, num_classes)
-    return model
-
-
-def resnet110(num_classes=10):
-    """Constructs a ResNet-110 model for CIFAR-10 (by default)
-    Args:
-      num_classes (uint): number of classes
-    """
-    model = CifarResNet(GatedBlock, 110, num_classes)
+def resnet32(num_classes=10, cfg=[16, 32, 64], gated=True, ratio=1):
+    model = CifarResNet(GatedBlock, 32, num_classes, cfg, gated=gated, ratio=ratio)
     return model

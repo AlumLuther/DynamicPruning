@@ -62,6 +62,12 @@ def build_parser():
     parser.add_argument('--save-path', type=str,
                         help='model save path', default=None)
 
+    parser.add_argument('--gated', action='store_true',
+                        help='flag for gated', default=True)
+
+    parser.add_argument('--ratio', type=float,
+                        help='compress ratio', default=1)
+
     return parser
 
 
