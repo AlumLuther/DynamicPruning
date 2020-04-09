@@ -20,7 +20,7 @@ class DownSample(nn.Module):
 class GatedBlock(nn.Module):
     expansion = 1
 
-    def __init__(self, inplanes, planes, stride=1, down_sample=None, gated=True, ratio=1):
+    def __init__(self, inplanes, planes, stride=1, down_sample=None, gated=False, ratio=1):
         super(GatedBlock, self).__init__()
 
         self.conv_a = nn.Conv2d(inplanes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
@@ -117,7 +117,7 @@ class CifarResNet(nn.Module):
                 init.kaiming_normal_(m.weight)
                 m.bias.data.zero_()
 
-    def _make_layer(self, block, planes, blocks, stride=1, gated=True, ratio=1):
+    def _make_layer(self, block, planes, blocks, stride=1, gated=False, ratio=1):
         down_sample = None
         if stride != 1 or self.inplanes != planes * block.expansion:
             down_sample = DownSample(stride)

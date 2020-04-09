@@ -66,24 +66,18 @@ def get_data_set(args, train_flag=True):
 
 def load_network(args):
     network = None
+    num_class = 10
+    if args.data_set == 'CIFAR100':
+        num_class = 100
+    if args.network == 'vgg':
+        network = MyVgg(num_class=num_class, gated=args.gated, ratio=args.ratio)
+    elif args.network == 'resnet':
+        network = resnet32(num_class=num_class, gated=args.gated, ratio=args.ratio)
+    elif args.network == 'cifarnet':
+        network = CifarNet(num_class=num_class, gated=args.gated, ratio=args.ratio)
     if args.load_path:
         check_point = torch.load(args.load_path)
-        if args.network == 'vgg':
-            network = MyVgg(gated=args.gated, ratio=args.ratio)
-            network.load_state_dict(check_point['state_dict'])
-        elif args.network == 'resnet':
-            network = resnet32(gated=args.gated, ratio=args.ratio)
-            network.load_state_dict(check_point['state_dict'])
-        elif args.network == 'cifarnet':
-            network = CifarNet(gated=args.gated, ratio=args.ratio)
-            network.load_state_dict(check_point['state_dict'])
-    else:
-        if args.network == 'vgg':
-            network = MyVgg(gated=args.gated, ratio=args.ratio)
-        elif args.network == 'resnet':
-            network = resnet32(gated=args.gated, ratio=args.ratio)
-        elif args.network == 'cifarnet':
-            network = CifarNet(gated=args.gated, ratio=args.ratio)
+        network.load_state_dict(check_point['state_dict'])
     return network
 
 

@@ -10,3 +10,4 @@ if args.train_flag:
     save_network(network, args)
 elif args.test_flag:
     test_network(network, args)
+# print(network)

@@ -27,7 +27,7 @@ def build_parser():
                         help='number of epoch for training network', default=10)
 
     parser.add_argument('--batch-size', type=int,
-                        help='batch size', default=128)
+                        help='batch size', default=256)
 
     parser.add_argument('--lr', type=float,
                         help='learning rate', default=0.1)
@@ -63,10 +63,16 @@ def build_parser():
                         help='model save path', default=None)
 
     parser.add_argument('--gated', action='store_true',
-                        help='flag for gated', default=True)
+                        help='flag for gated', default=False)
 
     parser.add_argument('--ratio', type=float,
-                        help='compress ratio', default=1)
+                        help='gated ratio', default=1)
+
+    parser.add_argument('--pruned', action='store_true',
+                        help='flag for filter pruned', default=False)
+
+    parser.add_argument('--alpha', type=float,
+                        help='prune rate', default=1)
 
     return parser
 

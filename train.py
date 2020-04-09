@@ -2,6 +2,7 @@ import torch
 
 from loss import LossCalculator
 from evaluate import accuracy, test_step
+from prune import soft_prune_step
 from utils import AverageMeter, get_data_set
 from optimizer import get_optimizer
 from datetime import datetime
@@ -22,6 +23,10 @@ def train_network(network, args):
 
     print("-*-" * 10 + "\n\t\tTrain network\n" + "-*-" * 10)
     for epoch in range(0, args.epoch):
+        if args.pruned and args.alpha < 1:
+            network = network.cpu()
+            network = soft_prune_step(network, 1 - args.alpha)
+            network = network.to(device)
         train_step(network, train_data_loader, test_data_loader, optimizer, device, epoch)
         if scheduler is not None:
             scheduler.step()

@@ -3,7 +3,7 @@ import torch.nn.functional as F
 
 
 class GatedConv(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size=3, stride=1, padding=1, gated=True, ratio=1):
+    def __init__(self, in_channels, out_channels, kernel_size=3, stride=1, padding=1, gated=False, ratio=1):
         super(GatedConv, self).__init__()
         self.conv = nn.Conv2d(in_channels, out_channels, kernel_size, stride=stride, padding=padding, bias=False)
         self.bn = nn.BatchNorm2d(out_channels)
